@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Price Tracker</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Product Price Tracker</h1>
+        
+        <form id="trackForm">
+            <label for="url">Product URL:</label>
+            <input type="text" id="url" name="url" required>
+            
+            <label for="target_price">Target Price:</label>
+            <input type="number" id="target_price" name="target_price" required>
+    
+            <label for="email">Notification Email:</label>
+            <input type="email" id="email" name="email" required>
+    
+            <label for="max_time">Max Tracking Time (minutes):</label>
+            <input type="number" id="max_time" name="max_time" required>
+    
+            <button type="button" onclick="startTracking()">Start Tracking</button>
+        </form>
+        
+        <h2 id="status"></h2>
+    </div>
+
+    <script>
+        async function startTracking() {
+            const url = document.getElementById('url').value;
+            const targetPrice = document.getElementById('target_price').value;
+            const email = document.getElementById('email').value;
+            const maxTime = document.getElementById('max_time').value;
+
+            const response = await fetch('/track', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: url, target_price: targetPrice, email: email, max_time: maxTime })
+            });
+            
+            const result = await response.json();
+            document.getElementById('status').innerText = result.message;
+
+            // Periodically check for updates every 30 seconds
+            setInterval(async () => {
+                const statusResponse = await fetch('/status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url })
+                });
+                const statusResult = await statusResponse.json();
+                document.getElementById('status').innerText = statusResult.status.message;
+            }, 30000);
+        }
+    </script>
+</body>
+</html>
